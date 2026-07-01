@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { supabase } from './db/supabase'
+import type { Session } from '@supabase/supabase-js'
 import Layout, { type TabId } from './components/Layout'
-import SyncSetup from './components/SyncSetup'
+import AuthPage from './components/AuthPage'
 import InboxPage from './pages/InboxPage'
 import TodayPage from './pages/TodayPage'
 import MatrixPage from './pages/MatrixPage'
@@ -9,11 +11,21 @@ import { getAllTasks } from './db'
 import type { Task } from './db/types'
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<TabId>('today')
   const [tasks, setTasks] = useState<Task[]>([])
-  const [ready, setReady] = useState(false)
 
-  const hasUserId = !!localStorage.getItem('da-nao-user-id')
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const refresh = useCallback(async () => {
     const all = await getAllTasks()
@@ -21,13 +33,19 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (hasUserId || ready) {
-      refresh()
-    }
-  }, [hasUserId, ready, refresh])
+    if (session) refresh()
+  }, [session, refresh])
 
-  if (!hasUserId && !ready) {
-    return <SyncSetup onDone={() => setReady(true)} />
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-bg">
+        <div className="text-text-secondary text-sm">加载中...</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return <AuthPage onAuthed={refresh} />
   }
 
   return (

@@ -1,26 +1,7 @@
 import { supabase } from './supabase'
 import type { Task } from './types'
 
-// 用浏览器指纹作为简易用户标识，实现多设备同步
-function getUserId(): string {
-  let id = localStorage.getItem('da-nao-user-id')
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem('da-nao-user-id', id)
-  }
-  return id
-}
-
-// 首次使用时提示输入同步码，或生成新的
-export function initUserId(): string {
-  return getUserId()
-}
-
-export function setUserId(id: string) {
-  localStorage.setItem('da-nao-user-id', id)
-}
-
-function toDbRow(task: Task, userId: string) {
+function toDbRow(task: Task) {
   return {
     id: task.id,
     title: task.title,
@@ -32,7 +13,6 @@ function toDbRow(task: Task, userId: string) {
     due_date: task.dueDate ?? null,
     notes: task.notes ?? null,
     category: task.category,
-    user_id: userId,
   }
 }
 
@@ -52,11 +32,9 @@ function fromDbRow(row: Record<string, unknown>): Task {
 }
 
 export async function getAllTasks(): Promise<Task[]> {
-  const userId = getUserId()
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -64,16 +42,14 @@ export async function getAllTasks(): Promise<Task[]> {
 }
 
 export async function addTask(task: Task): Promise<void> {
-  const userId = getUserId()
-  const { error } = await supabase.from('tasks').insert(toDbRow(task, userId))
+  const { error } = await supabase.from('tasks').insert(toDbRow(task))
   if (error) throw error
 }
 
 export async function updateTask(task: Task): Promise<void> {
-  const userId = getUserId()
   const { error } = await supabase
     .from('tasks')
-    .update(toDbRow(task, userId))
+    .update(toDbRow(task))
     .eq('id', task.id)
   if (error) throw error
 }
