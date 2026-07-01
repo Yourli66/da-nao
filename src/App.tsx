@@ -49,7 +49,7 @@ export default function App() {
   }
 
   return (
-    <Layout activeTab={tab} onTabChange={setTab}>
+    <Layout activeTab={tab} onTabChange={setTab} email={session.user.email ?? ''}>
       {tab === 'inbox' && <InboxPage tasks={tasks} onRefresh={refresh} />}
       {tab === 'today' && <TodayPage tasks={tasks} onRefresh={refresh} />}
       {tab === 'matrix' && <MatrixPage tasks={tasks} onRefresh={refresh} />}
