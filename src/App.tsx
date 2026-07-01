@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Layout, { type TabId } from './components/Layout'
+import SyncSetup from './components/SyncSetup'
 import InboxPage from './pages/InboxPage'
 import TodayPage from './pages/TodayPage'
 import MatrixPage from './pages/MatrixPage'
@@ -10,6 +11,9 @@ import type { Task } from './db/types'
 export default function App() {
   const [tab, setTab] = useState<TabId>('today')
   const [tasks, setTasks] = useState<Task[]>([])
+  const [ready, setReady] = useState(false)
+
+  const hasUserId = !!localStorage.getItem('da-nao-user-id')
 
   const refresh = useCallback(async () => {
     const all = await getAllTasks()
@@ -17,8 +21,14 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    if (hasUserId || ready) {
+      refresh()
+    }
+  }, [hasUserId, ready, refresh])
+
+  if (!hasUserId && !ready) {
+    return <SyncSetup onDone={() => setReady(true)} />
+  }
 
   return (
     <Layout activeTab={tab} onTabChange={setTab}>
