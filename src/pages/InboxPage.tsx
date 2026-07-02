@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import QuickCapture from '../components/QuickCapture'
 import TaskCard from '../components/TaskCard'
+import CategoryFilter, { type CategoryTab } from '../components/CategoryFilter'
 import type { Task } from '../db/types'
 
 export default function InboxPage({
@@ -9,17 +11,28 @@ export default function InboxPage({
   tasks: Task[]
   onRefresh: () => void
 }) {
-  const uncategorized = tasks.filter((t) => !t.completed && !t.important && !t.urgent)
-  const categorized = tasks.filter((t) => !t.completed && (t.important || t.urgent))
+  const [cat, setCat] = useState<CategoryTab>('work')
+
+  const workTasks = tasks.filter((t) => !t.completed && t.category === 'work')
+  const lifeTasks = tasks.filter((t) => !t.completed && t.category === 'life')
+  const filtered = cat === 'work' ? workTasks : lifeTasks
+
+  const uncategorized = filtered.filter((t) => !t.important && !t.urgent)
+  const categorized = filtered.filter((t) => t.important || t.urgent)
 
   return (
     <div>
       <header className="px-4 pt-12 pb-2">
         <h1 className="text-2xl font-bold text-text">收集箱</h1>
-        <p className="text-sm text-text-secondary mt-0.5">
-          先倒出来，再分类
-        </p>
+        <p className="text-sm text-text-secondary mt-0.5">先倒出来，再分类</p>
       </header>
+
+      <CategoryFilter
+        active={cat}
+        onChange={setCat}
+        workCount={workTasks.length}
+        lifeCount={lifeTasks.length}
+      />
 
       <QuickCapture onAdded={onRefresh} />
 
@@ -51,7 +64,7 @@ export default function InboxPage({
 
       {uncategorized.length === 0 && categorized.length === 0 && (
         <div className="px-4 py-16 text-center text-text-tertiary text-sm">
-          脑子空空，很好 :)
+          {cat === 'work' ? '工作' : '生活'}收集箱空空 :)
         </div>
       )}
     </div>

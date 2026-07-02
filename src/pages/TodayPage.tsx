@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import dayjs from 'dayjs'
 import QuickCapture from '../components/QuickCapture'
 import TaskCard from '../components/TaskCard'
+import CategoryFilter, { type CategoryTab } from '../components/CategoryFilter'
 import type { Task } from '../db/types'
 import { getQuadrant } from '../db/types'
 
@@ -11,8 +13,14 @@ export default function TodayPage({
   tasks: Task[]
   onRefresh: () => void
 }) {
-  const activeTasks = tasks.filter((t) => !t.completed)
-  const todayCompleted = tasks.filter(
+  const [cat, setCat] = useState<CategoryTab>('work')
+
+  const workTasks = tasks.filter((t) => t.category === 'work')
+  const lifeTasks = tasks.filter((t) => t.category === 'life')
+  const filtered = cat === 'work' ? workTasks : lifeTasks
+
+  const activeTasks = filtered.filter((t) => !t.completed)
+  const todayCompleted = filtered.filter(
     (t) => t.completed && t.completedAt && dayjs(t.completedAt).isSame(dayjs(), 'day')
   )
 
@@ -26,13 +34,18 @@ export default function TodayPage({
   return (
     <div>
       <header className="px-4 pt-12 pb-2">
-        <h1 className="text-2xl font-bold text-text">
-          今日焦点
-        </h1>
+        <h1 className="text-2xl font-bold text-text">今日焦点</h1>
         <p className="text-sm text-text-secondary mt-0.5">
           {dayjs().format('M月D日 dddd')} · 已完成 {done} 项，剩余 {total} 项
         </p>
       </header>
+
+      <CategoryFilter
+        active={cat}
+        onChange={setCat}
+        workCount={workTasks.filter((t) => !t.completed).length}
+        lifeCount={lifeTasks.filter((t) => !t.completed).length}
+      />
 
       <QuickCapture onAdded={onRefresh} />
 
@@ -90,7 +103,7 @@ export default function TodayPage({
 
       {total === 0 && done === 0 && (
         <div className="px-4 py-16 text-center text-text-tertiary text-sm">
-          今天还没有任务，先添加一些吧
+          {cat === 'work' ? '工作' : '生活'}没有待办事项
         </div>
       )}
     </div>

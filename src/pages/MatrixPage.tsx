@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import TaskCard from '../components/TaskCard'
+import CategoryFilter, { type CategoryTab } from '../components/CategoryFilter'
 import type { Task } from '../db/types'
 import { getQuadrant, QUADRANT_META, type Quadrant } from '../db/types'
 
@@ -9,7 +11,12 @@ export default function MatrixPage({
   tasks: Task[]
   onRefresh: () => void
 }) {
-  const active = tasks.filter((t) => !t.completed)
+  const [cat, setCat] = useState<CategoryTab>('work')
+
+  const workActive = tasks.filter((t) => !t.completed && t.category === 'work')
+  const lifeActive = tasks.filter((t) => !t.completed && t.category === 'life')
+  const active = cat === 'work' ? workActive : lifeActive
+
   const grouped: Record<Quadrant, Task[]> = { do: [], plan: [], delegate: [], drop: [] }
   for (const t of active) {
     grouped[getQuadrant(t)].push(t)
@@ -19,14 +26,21 @@ export default function MatrixPage({
 
   return (
     <div>
-      <header className="px-4 pt-12 pb-4">
+      <header className="px-4 pt-12 pb-2">
         <h1 className="text-2xl font-bold text-text">四象限</h1>
         <p className="text-sm text-text-secondary mt-0.5">
           展开任务可调整紧急/重要属性
         </p>
       </header>
 
-      <div className="px-4 grid grid-cols-2 gap-3">
+      <CategoryFilter
+        active={cat}
+        onChange={setCat}
+        workCount={workActive.length}
+        lifeCount={lifeActive.length}
+      />
+
+      <div className="px-4 grid grid-cols-2 gap-3 mt-2">
         {quadrants.map((q) => {
           const meta = QUADRANT_META[q]
           return (
@@ -53,9 +67,7 @@ export default function MatrixPage({
                   <TaskCard key={t.id} task={t} onChanged={onRefresh} />
                 ))}
                 {grouped[q].length === 0 && (
-                  <p className="text-[10px] text-text-tertiary text-center py-4">
-                    空
-                  </p>
+                  <p className="text-[10px] text-text-tertiary text-center py-4">空</p>
                 )}
               </div>
             </div>
