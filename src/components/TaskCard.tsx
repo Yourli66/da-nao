@@ -32,10 +32,17 @@ export default function TaskCard({
     onChanged()
   }
 
-  const toggleFlag = async (flag: 'urgent' | 'important') => {
-    await updateTask({ ...task, [flag]: !task[flag] })
+  const setQuadrant = async (important: boolean, urgent: boolean) => {
+    await updateTask({ ...task, important, urgent })
     onChanged()
   }
+
+  const quadrants = [
+    { important: true, urgent: true, label: '重要且紧急', color: '#EF4444' },
+    { important: true, urgent: false, label: '重要不紧急', color: '#3B82F6' },
+    { important: false, urgent: true, label: '紧急不重要', color: '#F59E0B' },
+    { important: false, urgent: false, label: '不重要不紧急', color: '#6B7280' },
+  ]
 
   return (
     <div className="bg-bg-card rounded-xl border border-border px-3 py-2.5 shadow-sm">
@@ -82,40 +89,40 @@ export default function TaskCard({
 
       {expanded && (
         <div className="mt-2 pt-2 border-t border-border">
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => toggleFlag('important')}
-              className={`text-xs px-2 py-1 rounded-full transition-colors ${
-                task.important
-                  ? 'bg-plan text-white'
-                  : 'bg-bg-input text-text-secondary'
-              }`}
-            >
-              {task.important ? '重要' : '不重要'}
-            </button>
-            <button
-              onClick={() => toggleFlag('urgent')}
-              className={`text-xs px-2 py-1 rounded-full transition-colors ${
-                task.urgent
-                  ? 'bg-do text-white'
-                  : 'bg-bg-input text-text-secondary'
-              }`}
-            >
-              {task.urgent ? '紧急' : '不紧急'}
-            </button>
+          <p className="text-[10px] text-text-tertiary mb-1.5">分类到：</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {quadrants.map((q) => {
+              const isActive = task.important === q.important && task.urgent === q.urgent
+              return (
+                <button
+                  key={q.label}
+                  onClick={() => setQuadrant(q.important, q.urgent)}
+                  className="text-xs px-2 py-1.5 rounded-lg transition-colors text-left"
+                  style={{
+                    backgroundColor: isActive ? q.color : undefined,
+                    color: isActive ? 'white' : q.color,
+                    border: `1.5px solid ${isActive ? q.color : q.color + '40'}`,
+                  }}
+                >
+                  {q.label}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex items-center mt-2">
+            <p className="text-[10px] text-text-tertiary">
+              创建于 {dayjs(task.createdAt).format('MM/DD HH:mm')}
+              {task.completedAt &&
+                ` · 完成于 ${dayjs(task.completedAt).format('MM/DD HH:mm')}`}
+            </p>
             <button
               onClick={handleDelete}
-              className="text-xs px-2 py-1 rounded-full bg-bg-input text-do flex items-center gap-1 ml-auto"
+              className="text-[10px] px-2 py-0.5 rounded-full text-do flex items-center gap-0.5 ml-auto"
             >
-              <Trash2 size={12} />
+              <Trash2 size={10} />
               删除
             </button>
           </div>
-          <p className="text-[10px] text-text-tertiary mt-1.5">
-            创建于 {dayjs(task.createdAt).format('MM/DD HH:mm')}
-            {task.completedAt &&
-              ` · 完成于 ${dayjs(task.completedAt).format('MM/DD HH:mm')}`}
-          </p>
         </div>
       )}
     </div>
