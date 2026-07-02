@@ -27,6 +27,7 @@ export default function TodayPage({
   const doNow = activeTasks.filter((t) => getQuadrant(t) === 'do')
   const planDo = activeTasks.filter((t) => getQuadrant(t) === 'plan')
   const quick = activeTasks.filter((t) => getQuadrant(t) === 'delegate')
+  const dropTasks = activeTasks.filter((t) => getQuadrant(t) === 'drop')
 
   const total = activeTasks.length
   const done = todayCompleted.length
@@ -82,6 +83,19 @@ export default function TodayPage({
           </h2>
           <div className="space-y-2">
             {planDo.map((t) => (
+              <TaskCard key={t.id} task={t} onChanged={onRefresh} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {dropTasks.length > 0 && (
+        <section className="px-4 mt-4">
+          <h2 className="text-xs font-semibold text-drop uppercase tracking-wider mb-2">
+            待分类 ({dropTasks.length})
+          </h2>
+          <div className="space-y-2">
+            {dropTasks.map((t) => (
               <TaskCard key={t.id} task={t} onChanged={onRefresh} />
             ))}
           </div>

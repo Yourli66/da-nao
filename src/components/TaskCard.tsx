@@ -127,9 +127,17 @@ export default function TaskCard({
           <AlertTriangle size={14} className="text-delegate shrink-0" />
         )}
 
-        <span className="text-[10px] text-text-tertiary shrink-0">
+        <button
+          onClick={async (e) => {
+            e.stopPropagation()
+            await updateTask({ ...task, category: task.category === 'work' ? 'life' : 'work' })
+            onChanged()
+          }}
+          className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0 border border-border text-text-secondary active:bg-bg-input"
+          title="点击切换工作/生活"
+        >
           {task.category === 'work' ? '工作' : '生活'}
-        </span>
+        </button>
 
         {showQuadrant && (
           <span
