@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 import type { Task } from './types'
 
+import type { Subtask } from './types'
+
 function toDbRow(task: Task) {
   return {
     id: task.id,
@@ -13,10 +15,20 @@ function toDbRow(task: Task) {
     due_date: task.dueDate ?? null,
     notes: task.notes ?? null,
     category: task.category,
+    next_action: task.nextAction ?? null,
+    blocker: task.blocker ?? null,
+    subtasks: JSON.stringify(task.subtasks ?? []),
   }
 }
 
 function fromDbRow(row: Record<string, unknown>): Task {
+  let subtasks: Subtask[] = []
+  try {
+    const raw = row.subtasks
+    if (typeof raw === 'string') subtasks = JSON.parse(raw)
+    else if (Array.isArray(raw)) subtasks = raw as Subtask[]
+  } catch { /* ignore */ }
+
   return {
     id: row.id as string,
     title: row.title as string,
@@ -28,6 +40,9 @@ function fromDbRow(row: Record<string, unknown>): Task {
     dueDate: (row.due_date as string) ?? undefined,
     notes: (row.notes as string) ?? undefined,
     category: row.category as 'work' | 'life',
+    nextAction: (row.next_action as string) ?? undefined,
+    blocker: (row.blocker as string) ?? undefined,
+    subtasks,
   }
 }
 

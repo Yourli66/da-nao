@@ -1,3 +1,9 @@
+export interface Subtask {
+  id: string
+  title: string
+  done: boolean
+}
+
 export interface Task {
   id: string
   title: string
@@ -9,6 +15,9 @@ export interface Task {
   dueDate?: string
   notes?: string
   category: 'work' | 'life'
+  nextAction?: string
+  blocker?: string
+  subtasks: Subtask[]
 }
 
 export type Quadrant = 'do' | 'plan' | 'delegate' | 'drop'

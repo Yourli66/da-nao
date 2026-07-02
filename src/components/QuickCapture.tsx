@@ -19,6 +19,7 @@ export default function QuickCapture({ onAdded }: { onAdded: () => void }) {
       completed: false,
       createdAt: Date.now(),
       category,
+      subtasks: [],
     }
 
     await addTask(task)
